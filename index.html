@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kembara Angkasa: Susun Planet Sistem Suria</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0b0b2a 0%, #1a0b36 50%, #050014 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: hidden;
+      padding: 10px;
+    }
+
+    /* 🌌 LATAR BELAKANG ANGKASA */
+    .bg-space {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
+                  radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
+                  radial-gradient(1px 1px at 90px 40px, #ddd, rgba(0,0,0,0)),
+                  radial-gradient(2px 2px at 160px 120px, #fff, rgba(0,0,0,0));
+      background-repeat: repeat;
+      background-size: 250px 250px;
+      opacity: 0.7;
+    }
+
+    .bg-planet {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.35;
+      animation: floatAround 20s ease-in-out infinite alternate;
+    }
+
+    .bg-planet-1 {
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle at 30% 30%, #ff8800, #440000);
+      top: 8%;
+      left: 3%;
+      box-shadow: 0 0 20px rgba(255, 136, 0, 0.4);
+    }
+
+    .bg-planet-2 {
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle at 30% 30%, #00e5ff, #001133);
+      bottom: 8%;
+      right: 3%;
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.35);
+      animation-duration: 25s;
+    }
+
+    .comet {
+      position: absolute;
+      width: 3px;
+      height: 90px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0), #00e5ff, #ffffff);
+      opacity: 0;
+      transform: rotate(-45deg);
+      animation: cometPass 8s linear infinite;
+    }
+
+    .comet-1 { top: -100px; right: 15%; animation-delay: 1.5s; }
+    .comet-2 { top: -100px; right: 55%; animation-delay: 5.5s; width: 2px; height: 60px; }
+
+    @keyframes floatAround {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-25px) rotate(8deg); }
+      100% { transform: translateY(15px) rotate(-8deg); }
+    }
+
+    @keyframes cometPass {
+      0% { opacity: 0; transform: translate(0, 0) rotate(-45deg); }
+      10% { opacity: 1; }
+      30% { opacity: 0; transform: translate(-350px, 450px) rotate(-45deg); }
+      100% { opacity: 0; transform: translate(-350px, 450px) rotate(-45deg); }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 10px;
+      margin-top: 5px;
+      position: relative;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      color: #ffe600;
+      text-shadow: 0 0 10px rgba(255, 230, 0, 0.5);
+    }
+
+    h2 {
+      font-size: 0.85rem;
+      color: #00e5ff;
+      font-weight: 400;
+    }
+
+    .audio-control {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(0, 229, 255, 0.2);
+      border: 1px solid #00e5ff;
+      color: #00e5ff;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .hud-timer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(255, 230, 0, 0.2);
+      border: 1px solid #ffe600;
+      color: #ffe600;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      display: none;
+    }
+
+    .lang-switcher {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .lang-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid #00e5ff;
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .lang-btn.active {
+      background: #00e5ff;
+      color: #000;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 15px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      margin-bottom: 15px;
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #00e5ff;
+      margin-bottom: 4px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #00e5ff;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 6px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #ff007f, #7928ca);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+      color: white;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid #00e5ff;
+      color: #00e5ff;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* 🛸 BEKAS TERAPUNG & ANIMASI BERGERAK KANAN KE KIRI */
+    .sun-banner {
+      background: radial-gradient(circle, #ffcc00 0%, #ff6600 100%);
+      color: #000;
+      font-weight: bold;
+      padding: 6px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      box-shadow: 0 0 12px rgba(255, 102, 0, 0.6);
+    }
+
+    .pool-floating-container {
+      position: relative;
+      width: 100%;
+      height: 72px;
+      overflow: hidden;
+      border: 1px dashed rgba(0, 229, 255, 0.35);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      margin: 4px 0;
+    }
+
+    .floating-card {
+      position: absolute !important;
+      top: 8px;
+      left: 100%;
+      width: 75px !important;
+      animation: floatRightToLeftBob 12s linear infinite;
+      z-index: 5;
+    }
+
+    .floating-card:hover, .floating-card:active, .floating-card.dragging {
+      animation-play-state: paused;
+    }
+
+    @keyframes floatRightToLeftBob {
+      0% {
+        left: 100%;
+        transform: translateY(0px);
+      }
+      25% {
+        transform: translateY(-8px);
+      }
+      50% {
+        transform: translateY(8px);
+      }
+      75% {
+        transform: translateY(-8px);
+      }
+      100% {
+        left: -90px;
+        transform: translateY(0px);
+      }
+    }
+
+    .orbit-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin: 6px 0;
+    }
+
+    .orbit-slot {
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px dashed rgba(0, 229, 255, 0.4);
+      border-radius: 8px;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      transition: all 0.2s;
+    }
+
+    .orbit-slot.drag-over {
+      border-color: #ffe600 !important;
+      background: rgba(255, 230, 0, 0.35) !important;
+      box-shadow: 0 0 12px rgba(255, 230, 0, 0.6);
+    }
+
+    .orbit-num {
+      font-size: 0.75rem;
+      color: #00e5ff;
+      font-weight: bold;
+      width: 45px;
+    }
+
+    .slot-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .planet-card {
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: grab;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      gap: 3px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: transform 0.15s;
+      touch-action: none;
+      width: 100%;
+      text-align: center;
+    }
+
+    .planet-card svg {
+      width: 28px;
+      height: 28px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .orbit-slot .planet-card {
+      flex-direction: row;
+      padding: 3px 8px;
+      justify-content: flex-start;
+      gap: 6px;
+      position: static !important;
+      animation: none !important;
+      width: auto !important;
+    }
+
+    .orbit-slot .planet-card svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .planet-card:active { cursor: grabbing; }
+
+    .planet-card.dragging {
+      opacity: 0.3;
+    }
+
+    /* 📱 KLON PENJAGA SKRIN SENTUH */
+    .touch-clone {
+      position: fixed !important;
+      pointer-events: none !important;
+      z-index: 9999 !important;
+      opacity: 0.95 !important;
+      animation: none !important;
+      box-shadow: 0 8px 20px rgba(0, 229, 255, 0.6) !important;
+      transform: translate(-50%, -50%) scale(1.08) !important;
+      border: 2px solid #ffe600 !important;
+    }
+
+    /* Warna Planet */
+    .p-utarid { background: #6e6e6e; color: #fff; }
+    .p-zuhrah { background: #b38f00; color: #fff; }
+    .p-bumi { background: #1f57a4; color: #fff; }
+    .p-marikh { background: #ab2813; color: #fff; }
+    .p-musytari { background: #aa5d13; color: #fff; }
+    .p-zuhal { background: #967f33; color: #fff; }
+    .p-uranus { background: #239cb8; color: #fff; }
+    .p-neptun { background: #132b7a; color: #fff; }
+
+    /* Fasa Kuiz */
+    .phase-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #ff007f, #7928ca);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .quiz-question {
+      font-size: 1rem;
+      color: #ffe600;
+      margin-bottom: 12px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 8px;
+    }
+
+    .option-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option-btn.btn-correct {
+      background: rgba(46, 204, 113, 0.7) !important;
+      border-color: #2ecc71 !important;
+    }
+
+    .option-btn.btn-wrong {
+      background: rgba(231, 76, 60, 0.7) !important;
+      border-color: #e74c3c !important;
+    }
+
+    .explanation-box {
+      display: none;
+      margin-top: 15px;
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid #ffe600;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(255, 230, 0, 0.3);
+    }
+
+    .explanation-box.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .exp-title {
+      font-weight: bold;
+      color: #ffe600;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    .exp-text {
+      font-size: 0.85rem;
+      color: #ffffff;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.78rem;
+    }
+
+    .leaderboard-table th, .leaderboard-table td {
+      padding: 6px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .leaderboard-table th { color: #00e5ff; }
+
+    .rank-1 { color: #ffe600; font-weight: bold; }
+    .rank-2 { color: #d7d7d7; font-weight: bold; }
+    .rank-3 { color: #c87d55; font-weight: bold; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      background: rgba(0, 229, 255, 0.2);
+      color: #00e5ff;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      border-top: 3px solid #00e5ff;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 15px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-space">
+    <div class="stars"></div>
+    <div class="bg-planet bg-planet-1"></div>
+    <div class="bg-planet bg-planet-2"></div>
+    <div class="comet comet-1"></div>
+    <div class="comet comet-2"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div id="hud-timer" class="hud-timer">⏱️ 00:00</div>
+      <button id="mute-btn" class="audio-control" onclick="toggleAudio()">🔊 Muzik: ON</button>
+      <h1 id="txt-title">🪐 KEMBARA ANGKASA</h1>
+      <h2 id="txt-subtitle">Sains Tahun 3: Sistem Suria</h2>
+    </header>
+
+    <!-- SKRIN 1: DAFTAR NAMA & PILIHAN BAHASA -->
+    <div id="screen-start" class="screen active">
+      <div class="card">
+        <div class="lang-switcher">
+          <button id="lang-bm" class="lang-btn active" onclick="switchLanguage('bm')">🇲🇾 Bahasa Melayu</button>
+          <button id="lang-en" class="lang-btn" onclick="switchLanguage('en')">🇬🇧 English</button>
+        </div>
+
+        <h3 id="txt-info-header" style="text-align: center; color:#ffe600; margin-bottom:12px;">Maklumat Murid</h3>
+        
+        <div class="input-group">
+          <label id="lbl-name" for="student-name">Nama Murid:</label>
+          <input type="text" id="student-name" placeholder="Contoh: Muhammad Ali" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+          <label id="lbl-class" for="student-class">Kelas:</label>
+          <input type="text" id="student-class" placeholder="Contoh: 3 Cemerlang" autocomplete="off">
+        </div>
+
+        <button id="btn-start" class="btn btn-primary" onclick="startGame()">MULA BERMAIN 🚀</button>
+        <button id="btn-leaderboard-main" class="btn btn-outline" style="margin-top:8px;" onclick="showLeaderboard()">🏆 PAPAN MENDAHULUAN</button>
+      </div>
+    </div>
+
+    <!-- SKRIN 2: FASA 1 (SUSUN PLANET TERAPUNG DI LANGIT & BAWAH) -->
+    <div id="screen-phase1" class="screen">
+      <div id="txt-sun-banner" class="sun-banner">☀️ MATAHARI (Pusat Sistem Suria)</div>
+
+      <div class="card" style="padding:10px;">
+        <p id="txt-top-pool-label" style="font-size:0.7rem; color:#00e5ff; text-align:center; margin-bottom:2px;">🌌 Pilihan Planet Langit (Atas):</p>
+        <div id="pool-top" class="pool-floating-container"></div>
+
+        <!-- ORBIT TENGAH (1-8) -->
+        <div id="orbit-slots" class="orbit-container"></div>
+
+        <p id="txt-bottom-pool-label" style="font-size:0.7rem; color:#00e5ff; text-align:center; margin-top:4px; margin-bottom:2px;">🌌 Pilihan Planet Bawah:</p>
+        <div id="pool-bottom" class="pool-floating-container"></div>
+
+        <button id="btn-check-p1" class="btn btn-secondary" style="margin-top:8px;" onclick="checkPhase1()">SEMAK SUSUNAN 🔍</button>
+      </div>
+    </div>
+
+    <!-- SKRIN 3: KUIZ (FASA 1, 2, 3) -->
+    <div id="screen-phase2" class="screen">
+      <div class="card">
+        <div style="text-align: center;">
+          <span id="quiz-phase-badge" class="phase-badge">FASA KUIZ 1</span>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.8rem; color:#00e5ff;">
+          <span><span id="lbl-question">Soalan</span> <span id="quiz-num">1</span>/12</span>
+          <span><span id="lbl-score">Markah</span>: <span id="p1-score-display">0</span></span>
+        </div>
+
+        <div id="quiz-question" class="quiz-question">Soalan Kuiz...</div>
+
+        <div id="quiz-options" class="options-grid"></div>
+
+        <div id="exp-box" class="explanation-box">
+          <div id="exp-title" class="exp-title">Penerangan:</div>
+          <div id="exp-text" class="exp-text">Penjelasan ringkas...</div>
+          <button id="btn-next-q" class="btn btn-primary" onclick="nextQuestion()">TERUSKAN ➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKRIN 4: KEPUTUSAN -->
+    <div id="screen-result" class="screen">
+      <div class="card" style="text-align: center;">
+        <h2 id="txt-congrats" style="color:#ffe600; font-size:1.3rem;">TAHNIAH! 🎉</h2>
+        <p id="txt-completed" style="margin-top:4px; font-size:0.85rem;">Anda telah menamatkan Kembara Angkasa!</p>
+
+        <div style="margin:12px 0; background:rgba(0,0,0,0.4); padding:10px; border-radius:12px;">
+          <div id="lbl-final-score" style="font-size:0.8rem; color:#00e5ff;">MARKAH KESELURUHAN</div>
+          <div id="final-score" style="font-size:2.8rem; font-weight:bold; color:#ffe600;">0</div>
+          
+          <div style="font-size:0.85rem; color:#ffe600; margin-top:5px;" id="result-time-taken">⏱️ Masa Diambil: 0 minit 0 saat</div>
+          <div style="font-size:0.75rem; color:#aaa; margin-top:2px;" id="result-status">Tersimpan dalam sistem!</div>
+        </div>
+
+        <button id="btn-submit" class="btn btn-primary" onclick="submitToGoogleSheet()">HANTAR MARKAH KE LEADERBOARD 📤</button>
+        <button id="btn-view-lb" class="btn btn-outline" style="margin-top:8px;" onclick="showLeaderboard()">LIHAT PAPAN MENDAHULUAN 🏆</button>
+        <button id="btn-replay" class="btn btn-secondary" style="margin-top:8px;" onclick="resetGame()">MAIN SEMULA 🔄</button>
+      </div>
+    </div>
+
+    <!-- SKRIN 5: PAPAN MENDAHULUAN -->
+    <div id="screen-leaderboard" class="screen">
+      <div class="card">
+        <h3 id="txt-lb-title" style="text-align: center; color:#ffe600; margin-bottom:8px;">🏆 PAPAN MENDAHULUAN</h3>
+        
+        <div id="leaderboard-loading" class="spinner"></div>
+
+        <div id="leaderboard-content" style="max-height: 280px; overflow-y: auto;">
+          <table class="leaderboard-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th id="th-name">Nama</th>
+                <th id="th-class">Kelas</th>
+                <th id="th-score">Markah</th>
+                <th id="th-time">Masa</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+        </div>
+
+        <button id="btn-back" class="btn btn-primary" style="margin-top:12px;" onclick="backToMain()">KEMBALI 🔙</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // 🔗 LINK LEADERBOARD GOOGLE APPS SCRIPT BAHARU
+    const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYnx64JMUKdJcctJsMv4A6IoiodMzS0cvH4N-rp9SmXK2-hicD_WX7vlBtaDL4-LHqcQ/exec";
+
+    let currentLang = 'bm';
+
+    const TRANSLATIONS = {
+      bm: {
+        title: "🪐 KEMBARA ANGKASA",
+        subtitle: "Sains Tahun 3: Sistem Suria",
+        info_header: "Maklumat Murid",
+        lbl_name: "Nama Murid:",
+        lbl_class: "Kelas:",
+        ph_name: "Contoh: Muhammad Ali",
+        ph_class: "Contoh: 3 Cemerlang",
+        btn_start: "MULA BERMAIN 🚀",
+        btn_lb: "🏆 PAPAN MENDAHULUAN",
+        sun_banner: "☀️ MATAHARI (Pusat Sistem Suria)",
+        top_pool_label: "🌌 Pilihan Planet Langit (Atas):",
+        bottom_pool_label: "🌌 Pilihan Planet Bawah:",
+        btn_check_p1: "SEMAK SUSUNAN 🔍",
+        lbl_question: "Soalan",
+        lbl_score: "Markah",
+        exp_title_correct: "✅ BETUL!",
+        exp_title_wrong: "❌ KURANG TEPAT!",
+        btn_next: "TERUSKAN ➡️",
+        congrats: "TAHNIAH! 🎉",
+        completed: "Anda telah menamatkan Kembara Angkasa!",
+        lbl_final_score: "MARKAH KESELURUHAN",
+        lbl_time_taken: "⏱️ Masa Diambil:",
+        btn_submit: "HANTAR MARKAH KE LEADERBOARD 📤",
+        btn_replay: "MAIN SEMULA 🔄",
+        btn_back: "KEMBALI 🔙",
+        th_name: "Nama",
+        th_class: "Kelas",
+        th_score: "Markah",
+        th_time: "Masa",
+        q_phase_1: "FASA KUIZ 1",
+        q_phase_2: "FASA KUIZ 2",
+        q_phase_3: "FASA KUIZ 3"
+      },
+      en: {
+        title: "🪐 SPACE ADVENTURE",
+        subtitle: "Year 3 Science: Solar System",
+        info_header: "Student Information",
+        lbl_name: "Student Name:",
+        lbl_class: "Class:",
+        ph_name: "Example: Alex Smith",
+        ph_class: "Example: 3 Grade",
+        btn_start: "START GAME 🚀",
+        btn_lb: "🏆 LEADERBOARD",
+        sun_banner: "☀️ THE SUN (Center of Solar System)",
+        top_pool_label: "🌌 Sky Planet Choices (Top):",
+        bottom_pool_label: "🌌 Bottom Planet Choices:",
+        btn_check_p1: "CHECK ORDER 🔍",
+        lbl_question: "Question",
+        lbl_score: "Score",
+        exp_title_correct: "✅ CORRECT!",
+        exp_title_wrong: "❌ INCORRECT!",
+        btn_next: "CONTINUE ➡️",
+        congrats: "CONGRATULATIONS! 🎉",
+        completed: "You have completed the Space Adventure!",
+        lbl_final_score: "OVERALL SCORE",
+        lbl_time_taken: "⏱️ Time Taken:",
+        btn_submit: "SUBMIT SCORE TO LEADERBOARD 📤",
+        btn_replay: "PLAY AGAIN 🔄",
+        btn_back: "BACK 🔙",
+        th_name: "Name",
+        th_class: "Class",
+        th_score: "Score",
+        th_time: "Time",
+        q_phase_1: "QUIZ PHASE 1",
+        q_phase_2: "QUIZ PHASE 2",
+        q_phase_3: "QUIZ PHASE 3"
+      }
+    };
+
+    const PLANETS_DATA = [
+      { id: 'utarid', name_bm: 'Utarid', name_en: 'Mercury', class: 'p-utarid', order: 1, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="#a0a0a0"/><circle cx="12" cy="13" r="3" fill="#787878"/><circle cx="22" cy="22" r="4" fill="#787878"/></svg>` },
+      { id: 'zuhrah', name_bm: 'Zuhrah', name_en: 'Venus', class: 'p-zuhrah', order: 2, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#f0c000"/><path d="M 5 12 Q 18 18 31 12 Z" fill="#d49a00" opacity="0.6"/></svg>` },
+      { id: 'bumi', name_bm: 'Bumi', name_en: 'Earth', class: 'p-bumi', order: 3, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="#1b66c9"/><path d="M 8 12 Q 14 6 20 10 Q 24 16 18 22 Z" fill="#2eab43"/></svg>` },
+      { id: 'marikh', name_bm: 'Marikh', name_en: 'Mars', class: 'p-marikh', order: 4, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="#d9381e"/><circle cx="13" cy="12" r="3" fill="#9e220e"/></svg>` },
+      { id: 'musytari', name_bm: 'Musytari', name_en: 'Jupiter', class: 'p-musytari', order: 5, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="#d9822b"/><rect x="2" y="9" width="32" height="4" rx="2" fill="#9e520d" opacity="0.8"/><circle cx="23" cy="22" r="4" fill="#c0392b"/></svg>` },
+      { id: 'zuhal', name_bm: 'Zuhal', name_en: 'Saturn', class: 'p-zuhal', order: 6, svg: `<svg viewBox="0 0 40 36"><ellipse cx="20" cy="18" rx="19" ry="6" fill="none" stroke="#e0c068" stroke-width="3" transform="rotate(-15 20 18)"/><circle cx="20" cy="18" r="10" fill="#c2a649"/></svg>` },
+      { id: 'uranus', name_bm: 'Uranus', name_en: 'Uranus', class: 'p-uranus', order: 7, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="#42c5f5"/><ellipse cx="18" cy="18" rx="17" ry="4" fill="none" stroke="#a2e8dd" stroke-width="1.8" transform="rotate(65 18 18)"/></svg>` },
+      { id: 'neptun', name_bm: 'Neptun', name_en: 'Neptune', class: 'p-neptun', order: 8, svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="14" fill="#1f45b2"/><path d="M 4 14 Q 18 18 32 14" stroke="#688bff" stroke-width="2" fill="none"/></svg>` }
+    ];
+
+    const QUIZ_QUESTIONS = [
+      {
+        q_bm: "Apakah planet yang terletak paling dekat dengan Matahari?", q_en: "Which planet is located closest to the Sun?",
+        opts_bm: ["Utarid", "Bumi", "Marikh", "Neptun"], opts_en: ["Mercury", "Earth", "Mars", "Neptune"],
+        ans_bm: "Utarid", ans_en: "Mercury",
+        exp_bm: "Utarid ialah planet yang pertama dan paling dekat dengan Matahari.", exp_en: "Mercury is the first and closest planet to the Sun."
+      },
+      {
+        q_bm: "Apakah planet yang paling besar dalam Sistem Suria?", q_en: "Which planet is the largest in the Solar System?",
+        opts_bm: ["Zuhal", "Musytari", "Uranus", "Zuhrah"], opts_en: ["Saturn", "Jupiter", "Uranus", "Venus"],
+        ans_bm: "Musytari", ans_en: "Jupiter",
+        exp_bm: "Musytari ialah planet gergasi yang paling besar dalam Sistem Suria.", exp_en: "Jupiter is a gas giant and the largest planet in the Solar System."
+      },
+      {
+        q_bm: "Apakah planet yang mempunyai gelang yang sangat terang dan indah?", q_en: "Which planet has bright and beautiful rings?",
+        opts_bm: ["Bumi", "Marikh", "Zuhal", "Utarid"], opts_en: ["Earth", "Mars", "Saturn", "Mercury"],
+        ans_bm: "Zuhal", ans_en: "Saturn",
+        exp_bm: "Zuhal mempunyai sistem gelang terang yang terdiri daripada ais dan batu.", exp_en: "Saturn has a bright ring system made of ice and rock dust."
+      },
+      {
+        q_bm: "Planet manakah yang merupakan satu-satunya planet yang mempunyai hidupan?", q_en: "Which planet is the only one known to support life?",
+        opts_bm: ["Zuhrah", "Bumi", "Neptun", "Marikh"], opts_en: ["Venus", "Earth", "Neptune", "Mars"],
+        ans_bm: "Bumi", ans_en: "Earth",
+        exp_bm: "Bumi mempunyai air, udara, dan suhu yang sesuai untuk hidupan.", exp_en: "Earth has liquid water, atmosphere, and suitable temperature for life."
+      },
+      {
+        q_bm: "Apakah planet yang paling jauh dari Matahari?", q_en: "Which planet is farthest from the Sun?",
+        opts_bm: ["Utarid", "Uranus", "Neptun", "Zuhrah"], opts_en: ["Mercury", "Uranus", "Neptune", "Venus"],
+        ans_bm: "Neptun", ans_en: "Neptune",
+        exp_bm: "Neptun ialah planet ke-8 dan paling jauh dari Matahari.", exp_en: "Neptune is the 8th planet and farthest from the Sun."
+      },
+      {
+        q_bm: "Apakah planet yang terkenal dan digelarkan sebagai 'Planet Merah'?", q_en: "Which planet is known as the 'Red Planet'?",
+        opts_bm: ["Marikh", "Zuhrah", "Musytari", "Utarid"], opts_en: ["Mars", "Venus", "Jupiter", "Mercury"],
+        ans_bm: "Marikh", ans_en: "Mars",
+        exp_bm: "Marikh kelihatan merah disebabkan oleh debu besi oksida pada permukaannya.", exp_en: "Mars appears red due to iron oxide dust on its surface."
+      },
+      {
+        q_bm: "Apakah planet yang terletak paling dekat dengan Matahari?", q_en: "Which planet is closest to the Sun?",
+        opts_bm: ["Utarid", "Zuhrah", "Marikh", "Musytari"], opts_en: ["Mercury", "Venus", "Mars", "Jupiter"],
+        ans_bm: "Utarid", ans_en: "Mercury",
+        exp_bm: "Utarid paling dekat dengan Matahari di orbit pertama.", exp_en: "Mercury is the closest planet to the Sun in the first orbit."
+      },
+      {
+        q_bm: "Apakah objek yang berada di pusat/tengah-tengah Sistem Suria?", q_en: "What object is at the center of the Solar System?",
+        opts_bm: ["Bumi", "Bulan", "Matahari", "Musytari"], opts_en: ["Earth", "Moon", "The Sun", "Jupiter"],
+        ans_bm: "Matahari", ans_en: "The Sun",
+        exp_bm: "Matahari ialah pusat Sistem Suria dan semua planet beredar mengelilinginya.", exp_en: "The Sun is at the center, and all planets revolve around it."
+      },
+      {
+        q_bm: "Apakah nama satelit semula jadi yang mengelilingi planet Bumi?", q_en: "What is the name of the natural satellite revolving around Earth?",
+        opts_bm: ["Matahari", "Komet", "Asteroid", "Bulan"], opts_en: ["Sun", "Comet", "Asteroid", "Moon"],
+        ans_bm: "Bulan", ans_en: "Moon",
+        exp_bm: "Bulan ialah satu-satunya satelit semula jadi bagi planet Bumi.", exp_en: "The Moon is Earth's only natural satellite."
+      },
+      {
+        q_bm: "Berapakah jumlah planet yang terdapat dalam Sistem Suria kita?", q_en: "How many planets are there in our Solar System?",
+        opts_bm: ["7", "8", "9", "10"], opts_en: ["7", "8", "9", "10"],
+        ans_bm: "8", ans_en: "8",
+        exp_bm: "Sistem Suria kita mempunyai 8 buah planet utama mengikut urutan orbit.", exp_en: "Our Solar System has 8 major planets orbiting the Sun."
+      },
+      {
+        q_bm: "Planet manakah yang paling sejuk dan beredar dalam keadaan condong?", q_en: "Which planet is the coldest and rotates on its side?",
+        opts_bm: ["Uranus", "Zuhal", "Marikh", "Zuhrah"], opts_en: ["Uranus", "Saturn", "Mars", "Venus"],
+        ans_bm: "Uranus", ans_en: "Uranus",
+        exp_bm: "Uranus ialah planet ais sejuk yang berputar secara condong pada paksinya.", exp_en: "Uranus is an ice giant that rotates almost on its side."
+      },
+      {
+        q_bm: "Apakah ahli Sistem Suria yang terdiri daripada ais dan debu serta mempunyai 'ekor' bersinar?", q_en: "Which celestial body consists of ice and dust with a glowing 'tail'?",
+        opts_bm: ["Asteroid", "Komet", "Meteoroid", "Satelit"], opts_en: ["Asteroid", "Comet", "Meteoroid", "Satellite"],
+        ans_bm: "Komet", ans_en: "Comet",
+        exp_bm: "Komet melepaskan gas dan debu membentuk ekor bersinar apabila mendekati Matahari.", exp_en: "Comets release gas and dust forming a glowing tail near the Sun."
+      }
+    ];
+
+    let studentName = "";
+    let studentClass = "";
+    let userOrbits = Array(8).fill(null);
+    let planetElements = {};
+    let planetOriginalPool = {};
+    
+    let currentQuizIndex = 0;
+    let phase1Score = 0;
+    let phase2Score = 0;
+    let totalScore = 0;
+    let draggedPlanetId = null;
+    let touchClone = null;
+
+    // ⏱️ TIMER
+    let timerInterval = null;
+    let timerSeconds = 0;
+
+    function startTimer() {
+      timerSeconds = 0;
+      clearInterval(timerInterval);
+      document.getElementById('hud-timer').style.display = 'block';
+      updateTimerDisplay();
+
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return m > 0 ? `${m} minit ${s} saat` : `${s} saat`;
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const s = String(timerSeconds % 60).padStart(2, '0');
+      document.getElementById('hud-timer').innerText = `⏱️ ${m}:${s}`;
+    }
+
+    // 🔊 AUDIO ENGINE
+    let audioCtx = null;
+    let isMuted = false;
+    let bgmInterval = null;
+    let currentBgmSpeed = 450;
+    const bgmNotes = [261.63, 329.63, 392.00, 523.25, 392.00, 523.25, 659.25, 523.25, 392.00, 329.63];
+    let noteIndex = 0;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function startBGM(speed = 450) {
+      initAudio();
+      currentBgmSpeed = speed;
+      if (bgmInterval) clearInterval(bgmInterval);
+
+      bgmInterval = setInterval(() => {
+        if (isMuted || !audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(bgmNotes[noteIndex], audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (currentBgmSpeed / 1000 * 0.8));
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + (currentBgmSpeed / 1000 * 0.8));
+
+          noteIndex = (noteIndex + 1) % bgmNotes.length;
+        } catch(e) {}
+      }, currentBgmSpeed);
+
+      document.getElementById('mute-btn').innerText = isMuted ? "🔇 Muzik: OFF" : "🔊 Muzik: ON";
+    }
+
+    window.addEventListener('click', () => { if (!audioCtx) startBGM(450); }, { once: true });
+    window.addEventListener('touchstart', () => { if (!audioCtx) startBGM(450); }, { once: true });
+
+    function toggleAudio() {
+      initAudio();
+      isMuted = !isMuted;
+      const btn = document.getElementById('mute-btn');
+      if (isMuted) {
+        btn.innerText = "🔇 Muzik: OFF";
+        if (bgmInterval) clearInterval(bgmInterval);
+      } else {
+        btn.innerText = "🔊 Muzik: ON";
+        startBGM(currentBgmSpeed);
+      }
+    }
+
+    function playSound(type) {
+      initAudio();
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'drop') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.12);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.12);
+        } else if (type === 'correct') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+          osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.45);
+        } else if (type === 'wrong') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(130, audioCtx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.35);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.12);
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.24);
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.36);
+          gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.65);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.65);
+        }
+      } catch(e) {}
+    }
+
+    function switchLanguage(lang) {
+      currentLang = lang;
+      document.getElementById('lang-bm').classList.toggle('active', lang === 'bm');
+      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+
+      const t = TRANSLATIONS[lang];
+      document.getElementById('txt-title').innerText = t.title;
+      document.getElementById('txt-subtitle').innerText = t.subtitle;
+      document.getElementById('txt-info-header').innerText = t.info_header;
+      document.getElementById('lbl-name').innerText = t.lbl_name;
+      document.getElementById('lbl-class').innerText = t.lbl_class;
+      document.getElementById('student-name').placeholder = t.ph_name;
+      document.getElementById('student-class').placeholder = t.ph_class;
+      document.getElementById('btn-start').innerText = t.btn_start;
+      document.getElementById('btn-leaderboard-main').innerText = t.btn_lb;
+      document.getElementById('txt-sun-banner').innerText = t.sun_banner;
+      document.getElementById('txt-top-pool-label').innerText = t.top_pool_label;
+      document.getElementById('txt-bottom-pool-label').innerText = t.bottom_pool_label;
+      document.getElementById('btn-check-p1').innerText = t.btn_check_p1;
+      document.getElementById('lbl-question').innerText = t.lbl_question;
+      document.getElementById('lbl-score').innerText = t.lbl_score;
+      document.getElementById('btn-next-q').innerText = t.btn_next;
+      document.getElementById('txt-congrats').innerText = t.congrats;
+      document.getElementById('txt-completed').innerText = t.completed;
+      document.getElementById('lbl-final-score').innerText = t.lbl_final_score;
+      document.getElementById('btn-submit').innerText = t.btn_submit;
+      document.getElementById('btn-replay').innerText = t.btn_replay;
+      document.getElementById('btn-back').innerText = t.btn_back;
+      document.getElementById('th-name').innerText = t.th_name;
+      document.getElementById('th-class').innerText = t.th_class;
+      document.getElementById('th-score').innerText = t.th_score;
+      document.getElementById('th-time').innerText = t.th_time;
+      document.getElementById('txt-lb-title').innerText = t.btn_lb;
+
+      PLANETS_DATA.forEach(p => {
+        if (planetElements[p.id]) {
+          const span = planetElements[p.id].querySelector('span');
+          if (span) span.innerText = (currentLang === 'bm') ? p.name_bm : p.name_en;
+        }
+      });
+    }
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    function startGame() {
+      const nameInput = document.getElementById('student-name').value.trim();
+      const classInput = document.getElementById('student-class').value.trim();
+
+      if (!nameInput || !classInput) {
+        alert(currentLang === 'bm' ? "Sila masukkan Nama dan Kelas anda!" : "Please enter your Name and Class!");
+        return;
+      }
+
+      studentName = nameInput;
+      studentClass = classInput;
+
+      startBGM(450);
+      startTimer();
+      initPhase1();
+      showScreen('screen-phase1');
+    }
+
+    function initPhase1() {
+      userOrbits = Array(8).fill(null);
+      planetElements = {};
+      planetOriginalPool = {};
+
+      const orbitContainer = document.getElementById('orbit-slots');
+      const poolTop = document.getElementById('pool-top');
+      const poolBottom = document.getElementById('pool-bottom');
+
+      orbitContainer.innerHTML = '';
+      poolTop.innerHTML = '';
+      poolBottom.innerHTML = '';
+
+      [poolTop, poolBottom].forEach(pool => {
+        pool.ondragover = (e) => e.preventDefault();
+        pool.ondrop = (e) => {
+          e.preventDefault();
+          if (draggedPlanetId) removePlanetFromOrbits(draggedPlanetId);
+        };
+      });
+
+      for (let i = 0; i < 8; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'orbit-slot';
+        slot.dataset.slotIndex = i;
+
+        slot.ondragover = (e) => { e.preventDefault(); slot.classList.add('drag-over'); };
+        slot.ondragleave = () => slot.classList.remove('drag-over');
+        slot.ondrop = (e) => {
+          e.preventDefault();
+          slot.classList.remove('drag-over');
+          if (draggedPlanetId) placePlanet(draggedPlanetId, i);
+        };
+
+        const numText = document.createElement('span');
+        numText.className = 'orbit-num';
+        numText.innerText = `${i+1}:`;
+
+        const content = document.createElement('div');
+        content.className = 'slot-content';
+        content.id = `slot-content-${i}`;
+        content.innerHTML = `<span class="empty-placeholder" style="color:#666; font-size:0.7rem;">[ Kosong ]</span>`;
+
+        slot.appendChild(numText);
+        slot.appendChild(content);
+        orbitContainer.appendChild(slot);
+      }
+
+      const topList = [];
+      const bottomList = [];
+
+      PLANETS_DATA.forEach((p, idx) => {
+        if (idx % 2 === 0) topList.push(p);
+        else bottomList.push(p);
+      });
+
+      const animDuration = 12;
+
+      topList.forEach((p, idx) => {
+        const card = createPlanetCard(p, true);
+        const delay = - (idx * (animDuration / Math.max(topList.length, 1)));
+        card.style.animationDelay = `${delay}s`;
+        poolTop.appendChild(card);
+        planetElements[p.id] = card;
+        planetOriginalPool[p.id] = poolTop;
+      });
+
+      bottomList.forEach((p, idx) => {
+        const card = createPlanetCard(p, true);
+        const delay = - (idx * (animDuration / Math.max(bottomList.length, 1)));
+        card.style.animationDelay = `${delay}s`;
+        poolBottom.appendChild(card);
+        planetElements[p.id] = card;
+        planetOriginalPool[p.id] = poolBottom;
+      });
+    }
+
+    function createPlanetCard(planet, isFloating = false) {
+      const card = document.createElement('div');
+      card.className = `planet-card ${planet.class}`;
+      if (isFloating) {
+        card.classList.add('floating-card');
+      }
+
+      const planetName = currentLang === 'bm' ? planet.name_bm : planet.name_en;
+      card.innerHTML = `${planet.svg}<span>${planetName}</span>`;
+      card.draggable = true;
+      card.dataset.planetId = planet.id;
+
+      card.ondragstart = (e) => {
+        draggedPlanetId = planet.id;
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', planet.id);
+      };
+
+      card.ondragend = () => {
+        card.classList.remove('dragging');
+        draggedPlanetId = null;
+      };
+
+      card.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) return;
+        draggedPlanetId = planet.id;
+        const touch = e.touches[0];
+
+        touchClone = card.cloneNode(true);
+        touchClone.classList.remove('floating-card', 'dragging');
+        touchClone.classList.add('touch-clone');
+
+        touchClone.style.left = touch.clientX + 'px';
+        touchClone.style.top = (touch.clientY - 35) + 'px';
+        touchClone.style.width = '100px';
+
+        document.body.appendChild(touchClone);
+        card.classList.add('dragging');
+
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      card.addEventListener('touchmove', (e) => {
+        if (!touchClone) return;
+        const touch = e.touches[0];
+
+        touchClone.style.left = touch.clientX + 'px';
+        touchClone.style.top = (touch.clientY - 35) + 'px';
+
+        const targetElem = document.elementFromPoint(touch.clientX, touch.clientY);
+        document.querySelectorAll('.orbit-slot').forEach(s => s.classList.remove('drag-over'));
+        if (targetElem) {
+          const slotElem = targetElem.closest('.orbit-slot');
+          if (slotElem) slotElem.classList.add('drag-over');
+        }
+
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      card.addEventListener('touchend', (e) => {
+        if (touchClone) {
+          touchClone.remove();
+          touchClone = null;
+        }
+        card.classList.remove('dragging');
+        document.querySelectorAll('.orbit-slot').forEach(s => s.classList.remove('drag-over'));
+
+        const touch = e.changedTouches[0];
+        const targetElem = document.elementFromPoint(touch.clientX, touch.clientY);
+
+        if (targetElem) {
+          const slotElem = targetElem.closest('.orbit-slot');
+          const poolElem = targetElem.closest('.pool-floating-container');
+
+          if (slotElem) {
+            const slotIndex = parseInt(slotElem.dataset.slotIndex);
+            placePlanet(draggedPlanetId, slotIndex);
+          } else if (poolElem) {
+            removePlanetFromOrbits(draggedPlanetId);
+          }
+        }
+
+        draggedPlanetId = null;
+        if (e.cancelable) e.preventDefault();
+      }, { passive: false });
+
+      return card;
+    }
+
+    function placePlanet(planetId, slotIndex) {
+      const planetObj = PLANETS_DATA.find(p => p.id === planetId);
+      const cardElem = planetElements[planetId];
+      if (!planetObj || !cardElem) return;
+
+      for (let i = 0; i < 8; i++) {
+        if (userOrbits[i] && userOrbits[i].id === planetId) {
+          userOrbits[i] = null;
+          const oldContent = document.getElementById(`slot-content-${i}`);
+          if (oldContent) {
+            oldContent.innerHTML = `<span class="empty-placeholder" style="color:#666; font-size:0.7rem;">[ Kosong ]</span>`;
+          }
+        }
+      }
+
+      if (userOrbits[slotIndex]) {
+        const oldPlanetId = userOrbits[slotIndex].id;
+        const oldCardElem = planetElements[oldPlanetId];
+        if (oldCardElem) {
+          oldCardElem.classList.add('floating-card');
+          const origPool = planetOriginalPool[oldPlanetId];
+          origPool.appendChild(oldCardElem);
+        }
+      }
+
+      const targetContent = document.getElementById(`slot-content-${slotIndex}`);
+      targetContent.innerHTML = '';
+      cardElem.classList.remove('floating-card');
+      targetContent.appendChild(cardElem);
+
+      userOrbits[slotIndex] = planetObj;
+      playSound('drop');
+    }
+
+    function removePlanetFromOrbits(planetId) {
+      const cardElem = planetElements[planetId];
+      if (!cardElem) return;
+
+      for (let i = 0; i < 8; i++) {
+        if (userOrbits[i] && userOrbits[i].id === planetId) {
+          userOrbits[i] = null;
+          const slotContent = document.getElementById(`slot-content-${i}`);
+          if (slotContent) {
+            slotContent.innerHTML = `<span class="empty-placeholder" style="color:#666; font-size:0.7rem;">[ Kosong ]</span>`;
+          }
+        }
+      }
+
+      cardElem.classList.add('floating-card');
+      const origPool = planetOriginalPool[planetId];
+      origPool.appendChild(cardElem);
+
+      playSound('drop');
+    }
+
+    function checkPhase1() {
+      if (userOrbits.includes(null)) {
+        playSound('wrong');
+        alert(currentLang === 'bm' ? "Sila lengkapkan kesemua 8 orbit sebelum semak!" : "Please complete all 8 orbits before checking!");
+        return;
+      }
+
+      let correctCount = 0;
+      userOrbits.forEach((p, idx) => {
+        if (p.order === (idx + 1)) correctCount++;
+      });
+
+      phase1Score = correctCount * 10;
+
+      if (correctCount === 8) {
+        playSound('win');
+        alert(currentLang === 'bm' ? "TAHNIAH! Kesemua planet disusun dengan BETUL! (+80 markah)" : "CONGRATS! All planets ordered CORRECTLY! (+80 score)");
+      } else {
+        playSound('wrong');
+        alert(currentLang === 'bm' ? `Anda mendapat ${correctCount}/8 planet betul (${phase1Score} markah). Mari teruskan ke Fasa Kuiz!` : `You got ${correctCount}/8 planets correct (${phase1Score} score). Let's proceed to the Quiz!`);
+      }
+
+      startPhase2();
+    }
+
+    function startPhase2() {
+      currentQuizIndex = 0;
+      phase2Score = 0;
+      document.getElementById('p1-score-display').innerText = phase1Score;
+      showScreen('screen-phase2');
+      loadQuizQuestion();
+    }
+
+    function loadQuizQuestion() {
+      document.getElementById('exp-box').classList.remove('active');
+
+      const badgeElem = document.getElementById('quiz-phase-badge');
+      const t = TRANSLATIONS[currentLang];
+
+      if (currentQuizIndex < 4) {
+        startBGM(420);
+        badgeElem.innerText = t.q_phase_1;
+      } else if (currentQuizIndex < 8) {
+        startBGM(280);
+        badgeElem.innerText = t.q_phase_2;
+      } else {
+        startBGM(170);
+        badgeElem.innerText = t.q_phase_3;
+      }
+
+      const qData = QUIZ_QUESTIONS[currentQuizIndex];
+      document.getElementById('quiz-num').innerText = currentQuizIndex + 1;
+      document.getElementById('quiz-question').innerText = currentLang === 'bm' ? qData.q_bm : qData.q_en;
+
+      const optsContainer = document.getElementById('quiz-options');
+      optsContainer.innerHTML = '';
+
+      const optsList = currentLang === 'bm' ? qData.opts_bm : qData.opts_en;
+      const correctAns = currentLang === 'bm' ? qData.ans_bm : qData.ans_en;
+
+      optsList.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerText = opt;
+        btn.onclick = (e) => answerQuiz(opt, correctAns, e.target, qData);
+        optsContainer.appendChild(btn);
+      });
+    }
+
+    function answerQuiz(selected, correct, btnElem, qData) {
+      const allBtns = document.querySelectorAll('.option-btn');
+      allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+      const isCorrect = (selected === correct);
+      const t = TRANSLATIONS[currentLang];
+
+      if (isCorrect) {
+        playSound('correct');
+        btnElem.classList.add('btn-correct');
+        phase2Score += 10;
+      } else {
+        playSound('wrong');
+        btnElem.classList.add('btn-wrong');
+      }
+
+      const expBox = document.getElementById('exp-box');
+      const expTitle = document.getElementById('exp-title');
+      const expText = document.getElementById('exp-text');
+
+      expTitle.innerText = isCorrect ? t.exp_title_correct : t.exp_title_wrong;
+      expText.innerText = currentLang === 'bm' ? qData.exp_bm : qData.exp_en;
+      expBox.classList.add('active');
+    }
+
+    function nextQuestion() {
+      currentQuizIndex++;
+      if (currentQuizIndex < QUIZ_QUESTIONS.length) {
+        loadQuizQuestion();
+      } else {
+        finishGame();
+      }
+    }
+
+    function finishGame() {
+      stopTimer();
+      totalScore = phase1Score + phase2Score;
+      playSound('win');
+      startBGM(450);
+
+      const t = TRANSLATIONS[currentLang];
+      document.getElementById('hud-timer').style.display = 'none';
+      document.getElementById('final-score').innerText = totalScore;
+      document.getElementById('result-time-taken').innerText = `${t.lbl_time_taken} ${formatTime(timerSeconds)}`;
+      document.getElementById('result-status').innerText = currentLang === 'bm' ? "Belum dihantar ke leaderboard." : "Not submitted yet.";
+      document.getElementById('btn-submit').style.display = 'block';
+      showScreen('screen-result');
+    }
+
+    // 🚀 FUNGSI HANTAR MARKAH MENGGUNAKAN GET
+    function submitToGoogleSheet() {
+      if (GOOGLE_APP_SCRIPT_URL === "GANTI_DENGAN_WEB_APP_URL_ANDA") {
+        alert(currentLang === 'bm' ? "Pautan Google Apps Script belum dimasukkan!" : "Google Apps Script URL is not configured!");
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit');
+      btn.innerText = "Sila tunggu... ⌛";
+      btn.disabled = true;
+
+      const saveUrl = `${GOOGLE_APP_SCRIPT_URL}?nama=${encodeURIComponent(studentName)}&kelas=${encodeURIComponent(studentClass)}&markah=${encodeURIComponent(totalScore)}&masa=${encodeURIComponent(formatTime(timerSeconds))}&masa_saat=${encodeURIComponent(timerSeconds)}`;
+
+      fetch(saveUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          playSound('win');
+          document.getElementById('result-status').innerText = currentLang === 'bm' ? "✅ Berjaya disimpan ke Leaderboard!" : "✅ Saved to Leaderboard!";
+          btn.style.display = 'none';
+          alert(currentLang === 'bm' ? "Markah anda telah berjaya dihantar!" : "Your score has been submitted!");
+        } else {
+          throw new Error(data.message || "Gagal simpan");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('result-status').innerText = "⚠️ Gagal hantar: " + err.message;
+        btn.innerText = "CUBA HANTAR SEMULA 📤";
+        btn.disabled = false;
+      });
+    }
+
+    function showLeaderboard() {
+      showScreen('screen-leaderboard');
+      fetchLeaderboard();
+    }
+
+    function fetchLeaderboard() {
+      const loading = document.getElementById('leaderboard-loading');
+      const tbody = document.getElementById('leaderboard-body');
+      
+      loading.style.display = 'block';
+      tbody.innerHTML = '';
+
+      if (GOOGLE_APP_SCRIPT_URL === "GANTI_DENGAN_WEB_APP_URL_ANDA") {
+        loading.style.display = 'none';
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ff6666;">Pautan Google Apps Script belum disetkan!</td></tr>`;
+        return;
+      }
+
+      fetch(GOOGLE_APP_SCRIPT_URL)
+      .then(res => res.json())
+      .then(data => {
+        loading.style.display = 'none';
+        
+        data.sort((a, b) => {
+          const scoreA = parseInt(a.markah) || 0;
+          const scoreB = parseInt(b.markah) || 0;
+          
+          if (scoreB !== scoreA) {
+            return scoreB - scoreA;
+          }
+
+          const timeA = parseInt(a.masa_saat) || 999999;
+          const timeB = parseInt(b.masa_saat) || 999999;
+          return timeA - timeB;
+        });
+
+        if (data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada rekod. Murid pertama! 🚀</td></tr>`;
+          return;
+        }
+
+        data.forEach((row, index) => {
+          const tr = document.createElement('tr');
+          let rankClass = '';
+          if (index === 0) rankClass = 'rank-1';
+          else if (index === 1) rankClass = 'rank-2';
+          else if (index === 2) rankClass = 'rank-3';
+
+          // Pemformatan Masa Ke "X minit Y saat"
+          let displayMasa = "-";
+          const sec = parseInt(row.masa_saat);
+          if (!isNaN(sec) && sec >= 0) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            displayMasa = m > 0 ? `${m} minit ${s} saat` : `${s} saat`;
+          } else if (row.masa && typeof row.masa === 'string' && !row.masa.includes('1899')) {
+            displayMasa = row.masa;
+          }
+
+          // Pemformatan Tarikh
+          let displayTarikh = row.tarikh || '-';
+          if (typeof displayTarikh === 'string' && displayTarikh.includes('T') && displayTarikh.includes('Z')) {
+            try {
+              const d = new Date(displayTarikh);
+              if (!isNaN(d.getTime())) {
+                displayTarikh = d.toLocaleDateString('ms-MY') + ' ' + d.toLocaleTimeString('ms-MY', { hour: '2-digit', minute: '2-digit', hour12: true });
+              }
+            } catch(e) {}
+          }
+
+          tr.innerHTML = `
+            <td class="${rankClass}">${index + 1}</td>
+            <td><strong>${row.nama || '-'}</strong><br><small style="color:#aaa; font-size:0.65rem;">${displayTarikh}</small></td>
+            <td><span class="badge">${row.kelas || '-'}</span></td>
+            <td class="${rankClass}">${row.markah || 0}</td>
+            <td>${displayMasa}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        loading.style.display = 'none';
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ff6666;">Gagal memuatkan data.</td></tr>`;
+      });
+    }
+
+    function backToMain() { showScreen('screen-start'); }
+    function resetGame() { showScreen('screen-start'); }
+  </script>
+</body>
+</html>
